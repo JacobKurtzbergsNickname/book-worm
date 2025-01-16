@@ -1,4 +1,13 @@
+using KirbysBooks.Models;
+using KirbysBooks.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.Configure<BookDatabaseSettings>(
+    builder.Configuration.GetSection("BookStoreDatabase")
+);
+
+builder.Services.AddSingleton<BooksService>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
