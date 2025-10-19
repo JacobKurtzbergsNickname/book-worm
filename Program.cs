@@ -1,10 +1,11 @@
+using KirbysBooks.Controllers;
 using KirbysBooks.Models;
 using KirbysBooks.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<BookDatabaseSettings>(
-    builder.Configuration.GetSection("BookStoreDatabase")
+    builder.Configuration.GetSection("BookDatabase")
 );
 
 builder.Services.AddSingleton<BooksService>();
@@ -22,17 +23,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+
+// app.UseHttpsRedirection();
 app.UseRouting();
+
+// React fallback
+app.MapFallbackToFile("index.html");
 
 app.UseAuthorization();
 
 app.MapStaticAssets();
-
-app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
-
+BooksEndpoints.Map(app);
 
 app.Run();

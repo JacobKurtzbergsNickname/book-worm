@@ -1,20 +1,18 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace KirbysBooks.Models;
-
 public class Book
 {
-   [BsonId]
-   [BsonRepresentation(BsonType.ObjectId)]
-   public string? Id { get; set; }
+    [BsonId] // Marks this as the _id field
+    [BsonRepresentation(BsonType.ObjectId)]
+    public string Id { get; set; } = default!;
 
-   [BsonElement("Name")]
-   public string BookName { get; set; } = null!;
+    [BsonElement("title")]
+    public string Title { get; set; } = default!;
 
-   public decimal Price { get; set; }
+    [BsonElement("author")]
+    public string Author { get; set; } = default!;
 
-   public string Category { get; set; } = null!;
-
-   public Author Author { get; set; } = null!;
+    [BsonElement("genre")]
+    public List<string> Genre { get; set; } = new();
 }
