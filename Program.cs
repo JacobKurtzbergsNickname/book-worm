@@ -1,17 +1,35 @@
 using KirbysBooks.Controllers;
-using KirbysBooks.Models;
+using Mapster;
+using KirbysBooks.Mappings;
+using KirbysBooks.Data;
 using KirbysBooks.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<BookDatabaseSettings>(
-    builder.Configuration.GetSection("BookDatabase")
+var configuration = builder.Configuration;
+
+// Configure EF Core Postgres
+var connectionString = configuration.GetConnectionString("DefaultConnection") ?? configuration["ConnectionStrings:DefaultConnection"];
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    // fallback for local development; user should set a real connection string in appsettings.json
+    connectionString = "Host=localhost;Database=KirbysBooks;Username=postgres;Password=postgres";
+}
+
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseNpgsql(connectionString)
 );
 
-builder.Services.AddSingleton<BooksService>();
+builder.Services.AddScoped<BooksService>();
+
+// Mapster configuration (TypeAdapterConfig)
+var mapsterConfig = TypeAdapterConfig.GlobalSettings;
+MapsterConfig.Register(mapsterConfig);
+builder.Services.AddSingleton(mapsterConfig);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -19,20 +37,17 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
-
-// app.UseHttpsRedirection();
 app.UseRouting();
 
-// React fallback
+// React fallback (keep static single-page fallback)
 app.MapFallbackToFile("index.html");
 
 app.UseAuthorization();
 
 app.MapStaticAssets();
-BooksEndpoints.Map(app);
+app.MapControllers();
 
 app.Run();

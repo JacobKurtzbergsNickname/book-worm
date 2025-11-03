@@ -1,18 +1,42 @@
-﻿using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace KirbysBooks.Models;
 
 public class Book
 {
-    [BsonId] // Marks this as the _id field
-    [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; } = default!;
+    public Book() { }
 
-    [BsonElement("title")]
-    public string Title { get; set; } = default!;
+    public Book(CreateBook newBook)
+    {
+        ISBN = newBook.ISBN ?? string.Empty;
+        Title = newBook.Title;
+        Price = newBook.Price;
+        Description = newBook.Description;
+        PublishedDate = newBook.PublishedDate ?? DateTime.MinValue;
+    }
 
-    [BsonElement("author")]
-    public string Author { get; set; } = default!;
+    [Key]
+    public int Id { get; set; }
 
-    [BsonElement("genre")]
-    public List<string> Genre { get; set; } = new();
+    [MaxLength(20)]
+    public string ISBN { get; set; } = null!;
+
+    [Required]
+    [MaxLength(200)]
+    public string Title { get; set; } = null!;
+
+    public int? AuthorId { get; set; }
+    public virtual Author? Author { get; set; }
+
+    public virtual ICollection<Genre> Genres { get; set; } = new List<Genre>();
+
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public DateTime PublishedDate { get; set; } = DateTime.MinValue;
+
+    public decimal Price { get; set; }
+
+    public string? Description { get; set; }
 }
