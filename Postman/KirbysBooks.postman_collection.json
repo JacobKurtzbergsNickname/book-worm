@@ -1,1 +1,267 @@
-﻿
+﻿{
+  "info": {
+    "_postman_id": "b1f6c9a2-0000-4000-8000-000000000000",
+    "name": "KirbysBooks API",
+    "schema": "https://schema.postman.com/collection/json/v2.1.0/collection.json",
+    "description": "Collection to test KirbysBooks API endpoints (GET, POST, PUT, DELETE). POST body pre-filled with curated data for Alan Moore's 'Jerusalem' (assumptions noted)."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5012",
+      "type": "string"
+    },
+    {
+      "key": "bookId",
+      "value": "1",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Get all books",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200', function () {",
+              "    pm.expect(pm.response.code).to.equal(200);",
+              "});",
+              "",
+              "pm.test('Response is an array', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.be.an('array');",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Get book by id",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/{{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "{{bookId}}"
+          ],
+          "variable": [
+            {
+              "key": "bookId",
+              "value": "{{bookId}}"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 200 or 404', function () {",
+              "    pm.expect([200, 404]).to.include(pm.response.code);",
+              "});",
+              "",
+              "pm.test('If 200, body should contain id or be object', function () {",
+              "    if (pm.response.code === 200) {",
+              "        var json = pm.response.json();",
+              "        pm.expect(json).to.be.an('object');",
+              "        pm.expect(json).to.have.property('id');",
+              "    }",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Create book (Jerusalem by Alan Moore)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Jerusalem\",\n  \"author\": {\n    \"firstName\": \"Alan\",\n    \"lastName\": \"Moore\",\n    \"birthDate\": \"1953-11-18T00:00:00Z\"\n  },\n  \"isbn\": \"9781631491344\",\n  \"publishedDate\": \"2016-09-01T00:00:00Z\",\n  \"price\": 29.99,\n  \"description\": \"A large, multi-layered novel by Alan Moore set primarily in Northampton, blending history, family saga and metaphysical elements. (Curated entry; not copied from any publisher.)\",\n  \"genre\": [\"Literary Fiction\", \"Magic Realism\"]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books"
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "// ensure bookId removed before create",
+              "pm.environment.unset('bookId');"
+            ],
+            "type": "text/javascript"
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 201', function () {",
+              "    pm.expect(pm.response.code).to.equal(201);",
+              "});",
+              "",
+              "pm.test('Response has id and author', function () {",
+              "    var json = pm.response.json();",
+              "    pm.expect(json).to.have.property('id');",
+              "    pm.expect(json).to.have.property('authorId');",
+              "    pm.expect(json).to.have.property('author');",
+              "    // save id for subsequent requests",
+              "    pm.environment.set('bookId', json.id.toString());",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Update book (by id)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Jerusalem (Updated)\",\n  \"isbn\": \"\",\n  \"publishedDate\": \"2016-09-01T00:00:00Z\",\n  \"price\": 29.99,\n  \"description\": \"Updated entry for testing.\",\n  \"genre\": [\"Literary Fiction\"]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/books/{{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "{{bookId}}"
+          ],
+          "variable": [
+            {
+              "key": "bookId",
+              "value": "{{bookId}}"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code !== 204) {",
+              "    var respText = pm.response.text();",
+              "    var formatted = respText;",
+              "    try { var parsed = pm.response.json(); formatted = JSON.stringify(parsed, null, 2); } catch (e) { /* not json */ }",
+              "    console.log('PUT /api/books/{{bookId}} returned', pm.response.code, formatted);",
+              "    pm.test('PUT returned 204', function () {",
+              "        pm.expect.fail('Unexpected status ' + pm.response.code + '\n' + formatted);",
+              "    });",
+              "}",
+              "pm.test('Status code is 204', function () {",
+              "    pm.expect(pm.response.code).to.equal(204);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Delete book (by id)",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/books/{{bookId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "books",
+            "{{bookId}}"
+          ],
+          "variable": [
+            {
+              "key": "bookId",
+              "value": "{{bookId}}"
+            }
+          ]
+        }
+      },
+      "response": [],
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('Status code is 204 or 404', function () {",
+              "    pm.expect([204,404]).to.include(pm.response.code);",
+              "});"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ]
+    }
+  ]
+}

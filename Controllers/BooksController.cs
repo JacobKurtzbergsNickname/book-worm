@@ -38,10 +38,9 @@ public class BooksController : ControllerBase
     {
         // ModelState validation is automatic because of [ApiController].
         var book = dto.Adapt<Book>(TypeAdapterConfig.GlobalSettings);
-        await _service.CreateAsync(book);
-
-        var readDto = book.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
-        return CreatedAtAction(nameof(GetById), new { id = book.Id }, readDto);
+        var created = await _service.CreateAsync(book);
+        var readDto = created.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, readDto);
     }
 
     [HttpPut("{id:int}")]
@@ -49,16 +48,19 @@ public class BooksController : ControllerBase
     {
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-        var updated = dto.Adapt<Book>(TypeAdapterConfig.GlobalSettings);
-        await _service.UpdateAsync(id.ToString(), updated);
-
-        return NoContent();
+        var updatedBook = dto.Adapt<Book>(TypeAdapterConfig.GlobalSettings);
+        var updated = await _service.UpdateAsync(id.ToString(), updatedBook);
+        if (updated == null) return NotFound();
+        var readDto = updated.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
+        return Ok(readDto);
     }
 
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _service.RemoveAsync(id.ToString());
-        return NoContent();
+        var deleted = await _service.RemoveAsync(id.ToString());
+        if (deleted == null) return NotFound();
+        var readDto = deleted.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
+        return Ok(readDto);
     }
 }

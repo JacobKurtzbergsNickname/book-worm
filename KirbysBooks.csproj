@@ -7,21 +7,31 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="DotNetEnv" Version="3.1.1" />
       <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.7" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         <PrivateAssets>all</PrivateAssets>
       </PackageReference>
+      <PackageReference Include="Npgsql" Version="9.0.4" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.8" />
       <PackageReference Include="Mapster" Version="7.4.0" />
+      <!-- Serilog for structured logging -->
+      <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+      <PackageReference Include="Serilog.Settings.Configuration" Version="7.0.0" />
+      <PackageReference Include="Serilog.Sinks.Console" Version="5.0.0" />
+      <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+      <PackageReference Include="Serilog.Sinks.PostgreSQL" Version="2.3.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <Content Update="Views\Shared\_Layout.cshtml.bak">
-        <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </Content>
+      <_ContentIncludedByDefault Remove="Views\Shared\_Layout.cshtml" />
     </ItemGroup>
 
+    <!-- Build the ClientApp (React/Vite) before the .NET build. -->
+    <Target Name="BuildClientApp" BeforeTargets="Build" Condition="'$(SkipClientBuild)' != 'true'">
+      <!-- Use cross-platform Node script to ensure node_modules, run build, and move artifacts -->
+      <Exec WorkingDirectory="$(MSBuildProjectDirectory)\ClientApp" Command="node scripts\\manage_client_build.cjs '$(MSBuildProjectDirectory)\ClientApp'" />
+    </Target>
 </Project>
