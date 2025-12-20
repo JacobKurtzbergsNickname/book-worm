@@ -1,5 +1,6 @@
 ﻿using KirbysBooks.Models;
 using KirbysBooks.Data;
+using KirbysBooks.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace KirbysBooks.Services;

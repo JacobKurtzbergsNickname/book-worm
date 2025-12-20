@@ -1,5 +1,6 @@
 ﻿using Mapster;
 using KirbysBooks.Dtos;
+using KirbysBooks.Interfaces;
 using KirbysBooks.Models;
 using KirbysBooks.Services;
 using Microsoft.AspNetCore.Mvc;

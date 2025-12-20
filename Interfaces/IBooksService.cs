@@ -1,6 +1,6 @@
 ﻿using KirbysBooks.Models;
 
-namespace KirbysBooks.Services;
+namespace KirbysBooks.Interfaces;
 
 public interface IBooksService
 {
@@ -12,5 +12,5 @@ public interface IBooksService
     
     Task<Book?> UpdateAsync(string id, Book updatedBook);
     
-    Task<Book> RemoveAsync(string id);
+    Task<Book?> RemoveAsync(string id);
 }

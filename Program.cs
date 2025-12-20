@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using KirbysBooks.Extensions;
 using DotNetEnv;
+using KirbysBooks.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
