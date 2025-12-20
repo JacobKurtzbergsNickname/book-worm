@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KirbysBooks.Services;
 
-public class BooksService(AppDbContext db)
+public class BooksService(AppDbContext db) : IBooksService
 {
     public async Task<List<Book>> GetAsync() =>
         await db.Books.Include(b => b.Author).Include(b => b.Genres).ToListAsync();

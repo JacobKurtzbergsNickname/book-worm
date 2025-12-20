@@ -1,9 +1,6 @@
 ﻿@echo off
 setlocal
 
-REM run-dev.cmd - prefer this modern .cmd script for Windows developers
-REM It runs the client build then starts the backend.
-
 pushd "%~dp0\ClientApp"
 node scripts\manage_client_build.cjs "%CD%"
 if %ERRORLEVEL% NEQ 0 (

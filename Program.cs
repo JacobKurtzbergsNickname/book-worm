@@ -22,6 +22,7 @@ if (builder.Environment.IsDevelopment())
 var configuration = builder.Configuration;
 
 // Configure EF Core Postgres
+// TODO: Check if this is compatible with the ENV solution.
 var connectionString = configuration.GetConnectionString("DefaultConnection") ?? configuration["ConnectionStrings:DefaultConnection"];
 if (string.IsNullOrWhiteSpace(connectionString))
 {
@@ -33,7 +34,12 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString)
 );
 
-builder.Services.AddScoped<BooksService>();
+builder.Services.AddHttpClient<IOpenLibraryService, OpenLibraryService>(client =>
+{
+    client.BaseAddress = new Uri("https://openlibrary.org/");
+});
+builder.Services.AddScoped<IBooksService, BooksService>();
+builder.Services.AddScoped<IOpenLibraryService, OpenLibraryService>();
 
 // Mapster configuration (TypeAdapterConfig)
 var mapsterConfig = TypeAdapterConfig.GlobalSettings;

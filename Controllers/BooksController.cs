@@ -8,19 +8,15 @@ namespace KirbysBooks.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class BooksController : ControllerBase
+public class BooksController(
+    IBooksService booksService,
+    IOpenLibraryService openLibraryService)
+    : ControllerBase
 {
-    private readonly BooksService _service;
-
-    public BooksController(BooksService service)
-    {
-        _service = service;
-    }
-
     [HttpGet]
     public async Task<ActionResult<IEnumerable<BookReadDto>>> Get()
     {
-        var books = await _service.GetAsync();
+        var books = await booksService.GetAsync();
         var dtos = books.Select(b => b.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings)).ToList();
         return Ok(dtos);
     }
@@ -28,7 +24,7 @@ public class BooksController : ControllerBase
     [HttpGet("{id:int}")]
     public async Task<ActionResult<BookReadDto>> GetById(int id)
     {
-        var book = await _service.GetAsync(id.ToString());
+        var book = await booksService.GetAsync(id.ToString());
         if (book == null) return NotFound();
         return Ok(book.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings));
     }
@@ -38,7 +34,7 @@ public class BooksController : ControllerBase
     {
         // ModelState validation is automatic because of [ApiController].
         var book = dto.Adapt<Book>(TypeAdapterConfig.GlobalSettings);
-        var created = await _service.CreateAsync(book);
+        var created = await booksService.CreateAsync(book);
         var readDto = created.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, readDto);
     }
@@ -49,7 +45,7 @@ public class BooksController : ControllerBase
         if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
         var updatedBook = dto.Adapt<Book>(TypeAdapterConfig.GlobalSettings);
-        var updated = await _service.UpdateAsync(id.ToString(), updatedBook);
+        var updated = await booksService.UpdateAsync(id.ToString(), updatedBook);
         if (updated == null) return NotFound();
         var readDto = updated.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
         return Ok(readDto);
@@ -58,9 +54,17 @@ public class BooksController : ControllerBase
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var deleted = await _service.RemoveAsync(id.ToString());
+        var deleted = await booksService.RemoveAsync(id.ToString());
         if (deleted == null) return NotFound();
         var readDto = deleted.Adapt<BookReadDto>(TypeAdapterConfig.GlobalSettings);
         return Ok(readDto);
+    }
+    
+    [HttpGet("openlibrary/{isbn}")]
+    public async Task<IActionResult> GetFromOpenLibraryByIsbn(string isbn)
+    {
+        var book = await openLibraryService.GetBookByIsbnAsync(isbn);
+        if (book == null) return NotFound();
+        return Ok(book);
     }
 }
