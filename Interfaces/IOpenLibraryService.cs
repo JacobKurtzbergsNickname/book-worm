@@ -1,6 +1,6 @@
-﻿using KirbysBooks.Models;
+﻿using KirbysBooks.Models.OpenLibrary;
 
-namespace KirbysBooks.Services;
+namespace KirbysBooks.Interfaces;
 
 public interface IOpenLibraryService
 {

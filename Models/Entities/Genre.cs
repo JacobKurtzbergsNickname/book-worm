@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace KirbysBooks.Models;
+namespace KirbysBooks.Models.Entities;
 
 public class Genre
 {
