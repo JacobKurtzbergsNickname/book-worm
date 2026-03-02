@@ -1,4 +1,4 @@
-﻿using KirbysBooks.Models;
+﻿using KirbysBooks.Models.Entities;
 
 namespace KirbysBooks.Interfaces;
 

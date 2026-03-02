@@ -1,5 +1,5 @@
 ﻿// filepath: c:\Users\korbi\Coding\personal\csharp\KirbysBooks\Data\AppDbContext.cs
-using KirbysBooks.Models;
+using KirbysBooks.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace KirbysBooks.Data;

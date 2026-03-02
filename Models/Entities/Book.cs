@@ -1,19 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace KirbysBooks.Models;
+namespace KirbysBooks.Models.Entities;
 
 public class Book
 {
     public Book() { }
-
-    public Book(CreateBook newBook)
-    {
-        ISBN = newBook.ISBN ?? string.Empty;
-        Title = newBook.Title;
-        Price = newBook.Price;
-        Description = newBook.Description;
-        PublishedDate = newBook.PublishedDate ?? DateTime.MinValue;
-    }
 
     [Key]
     public int Id { get; set; }

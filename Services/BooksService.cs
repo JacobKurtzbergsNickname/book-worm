@@ -1,4 +1,4 @@
-﻿using KirbysBooks.Models;
+﻿using KirbysBooks.Models.Entities;
 using KirbysBooks.Data;
 using KirbysBooks.Interfaces;
 using Microsoft.EntityFrameworkCore;

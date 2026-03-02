@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using KirbysBooks.Models;
+using KirbysBooks.Models.ViewModels;
 
 namespace KirbysBooks.Controllers;
 
