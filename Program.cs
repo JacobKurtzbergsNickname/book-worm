@@ -8,23 +8,25 @@ using KirbysBooks.Extensions;
 using DotNetEnv;
 using KirbysBooks.Interfaces;
 
-var builder = WebApplication.CreateBuilder(args);
-
-// Load environment variables from .env in Development for convenience
-if (builder.Environment.IsDevelopment())
+// Load environment variables from .env in Development for convenience.
+// This must happen before WebApplication.CreateBuilder so the environment variable
+// configuration provider picks them up when the builder initialises.
+var aspnetEnv = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
+if (string.Equals(aspnetEnv, "Development", StringComparison.OrdinalIgnoreCase))
 {
-    var envPath = Path.Combine(builder.Environment.ContentRootPath, ".env");
+    var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
     if (File.Exists(envPath))
     {
         Env.Load(envPath);
     }
 }
 
+var builder = WebApplication.CreateBuilder(args);
+
 var configuration = builder.Configuration;
 
 // Configure EF Core Postgres
-// TODO: Check if this is compatible with the ENV solution.
-var connectionString = configuration.GetConnectionString("DefaultConnection") ?? configuration["ConnectionStrings:DefaultConnection"];
+var connectionString = configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     // fallback for local development; user should set a real connection string in appsettings.json
