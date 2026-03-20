@@ -6,3 +6,14 @@ riderModule.iml
 
 # Local env file
 .env
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Log files
+*.log
+Logs
+
+# wwwroot
+wwwroot/
