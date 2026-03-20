@@ -4,7 +4,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
-namespace KirbysBooks.Migrations
+namespace BookWorm.Migrations
 {
     /// <inheritdoc />
     public partial class AddAuthorFkToBook : Migration

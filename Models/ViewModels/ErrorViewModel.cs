@@ -1,4 +1,4 @@
-namespace KirbysBooks.Models.ViewModels;
+namespace BookWorm.Models.ViewModels;
 
 public class ErrorViewModel
 {

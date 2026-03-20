@@ -1,9 +1,9 @@
 using System.Net;
 using System.Text.Json;
-using KirbysBooks.Interfaces;
-using KirbysBooks.Models.OpenLibrary;
+using BookWorm.Interfaces;
+using BookWorm.Models.OpenLibrary;
 
-namespace KirbysBooks.Services;
+namespace BookWorm.Services;
 
 public class OpenLibraryService(HttpClient http) : IOpenLibraryService
 {

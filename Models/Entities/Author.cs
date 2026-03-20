@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace KirbysBooks.Models.Entities;
+namespace BookWorm.Models.Entities;
 
 public class Author
 {

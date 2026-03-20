@@ -12,7 +12,7 @@ if %ERRORLEVEL% NEQ 0 (
 popd
 
 echo Starting dotnet run...
-dotnet run --project "%~dp0\KirbysBooks.csproj"
+dotnet run --project "%~dp0\BookWorm.csproj"
 
 endlocal
 

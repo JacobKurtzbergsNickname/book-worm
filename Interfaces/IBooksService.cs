@@ -1,6 +1,6 @@
-﻿using KirbysBooks.Models.Entities;
+﻿using BookWorm.Models.Entities;
 
-namespace KirbysBooks.Interfaces;
+namespace BookWorm.Interfaces;
 
 public interface IBooksService
 {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace KirbysBooks.Dtos;
+namespace BookWorm.Dtos;
 
 public class AuthorReadDto
 {

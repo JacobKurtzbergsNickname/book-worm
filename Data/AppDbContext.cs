@@ -1,8 +1,8 @@
-﻿// filepath: c:\Users\korbi\Coding\personal\csharp\KirbysBooks\Data\AppDbContext.cs
-using KirbysBooks.Models.Entities;
+﻿// filepath: c:\Users\korbi\Coding\personal\csharp\BookWorm\Data\AppDbContext.cs
+using BookWorm.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace KirbysBooks.Data;
+namespace BookWorm.Data;
 
 public class AppDbContext : DbContext
 {

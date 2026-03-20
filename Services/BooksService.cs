@@ -1,9 +1,9 @@
-﻿using KirbysBooks.Models.Entities;
-using KirbysBooks.Data;
-using KirbysBooks.Interfaces;
+﻿using BookWorm.Models.Entities;
+using BookWorm.Data;
+using BookWorm.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace KirbysBooks.Services;
+namespace BookWorm.Services;
 
 public class BooksService(AppDbContext db) : IBooksService
 {

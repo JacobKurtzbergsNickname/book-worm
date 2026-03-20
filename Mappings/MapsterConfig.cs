@@ -1,8 +1,8 @@
 ﻿using Mapster;
-using KirbysBooks.Dtos;
-using KirbysBooks.Models.Entities;
+using BookWorm.Dtos;
+using BookWorm.Models.Entities;
 
-namespace KirbysBooks.Mappings;
+namespace BookWorm.Mappings;
 
 public static class MapsterConfig
 {
