@@ -1,6 +1,6 @@
 ﻿using Mapster;
 using KirbysBooks.Dtos;
-using KirbysBooks.Models;
+using KirbysBooks.Models.Entities;
 
 namespace KirbysBooks.Mappings;
 
