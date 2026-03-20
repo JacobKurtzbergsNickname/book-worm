@@ -1,4 +1,4 @@
-﻿namespace KirbysBooks.Models.OpenLibrary;
+﻿namespace BookWorm.Models.OpenLibrary;
 
 public class OpenLibraryBook
 {

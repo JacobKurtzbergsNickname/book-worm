@@ -1,12 +1,12 @@
 using Mapster;
-using KirbysBooks.Mappings;
-using KirbysBooks.Data;
-using KirbysBooks.Services;
+using BookWorm.Mappings;
+using BookWorm.Data;
+using BookWorm.Services;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
-using KirbysBooks.Extensions;
+using BookWorm.Extensions;
 using DotNetEnv;
-using KirbysBooks.Interfaces;
+using BookWorm.Interfaces;
 
 // Load environment variables from .env in Development for convenience.
 // This must happen before WebApplication.CreateBuilder so the environment variable
@@ -30,7 +30,7 @@ var connectionString = configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     // fallback for local development; user should set a real connection string in appsettings.json
-    connectionString = "Host=localhost;Database=KirbysBooks;Username=postgres;Password=postgres";
+    connectionString = "Host=localhost;Database=BookWorm;Username=postgres;Password=postgres";
 }
 
 builder.Services.AddDbContext<AppDbContext>(options =>

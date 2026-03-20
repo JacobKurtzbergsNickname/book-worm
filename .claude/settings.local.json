@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mv KirbysBooks.sln BookWorm.sln)",
+      "Bash(mv KirbysBooks.csproj BookWorm.csproj)",
+      "Bash(mv KirbysBooks.sln.DotSettings.user BookWorm.sln.DotSettings.user)",
+      "Bash(mv Postman/KirbysBooks.postman_collection.json Postman/BookWorm.postman_collection.json)"
+    ]
+  }
+}

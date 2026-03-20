@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KirbysBooks.Dtos;
+namespace BookWorm.Dtos;
 
 public class BookReadDto
 {

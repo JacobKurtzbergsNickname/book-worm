@@ -1,11 +1,11 @@
 ﻿using Mapster;
-using KirbysBooks.Dtos;
-using KirbysBooks.Interfaces;
-using KirbysBooks.Models.Entities;
-using KirbysBooks.Services;
+using BookWorm.Dtos;
+using BookWorm.Interfaces;
+using BookWorm.Models.Entities;
+using BookWorm.Services;
 using Microsoft.AspNetCore.Mvc;
 
-namespace KirbysBooks.Controllers;
+namespace BookWorm.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

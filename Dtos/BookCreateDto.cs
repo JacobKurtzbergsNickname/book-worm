@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
-namespace KirbysBooks.Dtos;
+namespace BookWorm.Dtos;
 
 public class AuthorCreateDto
 {

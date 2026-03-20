@@ -5,7 +5,7 @@ using Serilog.Sinks.PostgreSQL;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 
-namespace KirbysBooks.Extensions;
+namespace BookWorm.Extensions;
 
 public static class LoggingExtensions
 {
@@ -31,7 +31,7 @@ public static class LoggingExtensions
         loggerConfig = loggerConfig.Enrich.FromLogContext()
                                      .Enrich.WithProperty("MachineName", Environment.MachineName)
                                      .Enrich.WithProperty("ThreadId", Environment.CurrentManagedThreadId)
-                                     .Enrich.WithProperty("Application", "KirbysBooks");
+                                     .Enrich.WithProperty("Application", "BookWorm");
 
         // Sinks: Console and rolling file
         loggerConfig = loggerConfig.WriteTo.Console();

@@ -1,4 +1,4 @@
-﻿namespace KirbysBooks.Models.Configuration;
+﻿namespace BookWorm.Models.Configuration;
 
 public class BookDatabaseSettings
 {

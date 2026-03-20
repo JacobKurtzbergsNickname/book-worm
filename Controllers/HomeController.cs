@@ -1,8 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using KirbysBooks.Models.ViewModels;
+using BookWorm.Models.ViewModels;
 
-namespace KirbysBooks.Controllers;
+namespace BookWorm.Controllers;
 
 public class HomeController : Controller
 {
