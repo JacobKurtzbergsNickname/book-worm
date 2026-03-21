@@ -2,126 +2,128 @@ import { useEffect, useRef } from "react";
 import kaplay from "kaplay";
 import { getBooks } from "../api/booksApi";
 import { navigateTo } from "../routing";
+import {
+  buildRoomBackground,
+  GW, GH,
+  SHELF_X, SHELF_W, SHELF_T, SHELF_ROWS, BOOK_GAP,
+} from "./snesRoom";
 
-// Warm, varied book spine colors
+// ── SNES book-spine palette ───────────────────────────────────────────────────
+// Vibrant colours typical of SNES RPG item/book graphics.
 const BOOK_COLORS: [number, number, number][] = [
-  [178, 52,  38 ],
-  [38,  92,  172],
-  [52,  142, 52 ],
-  [152, 112, 22 ],
-  [118, 42,  152],
-  [172, 102, 22 ],
-  [42,  132, 132],
-  [152, 72,  72 ],
-  [52,  92,  142],
-  [132, 152, 38 ],
-  [172, 88,  38 ],
-  [42,  112, 82 ],
+  [200,  40,  40],  // red
+  [ 40,  72, 200],  // blue
+  [ 40, 120,  60],  // green
+  [200, 160,  32],  // yellow
+  [104,  32, 168],  // purple
+  [ 32, 112, 160],  // teal
+  [200,  96,  32],  // orange
+  [120,  48,  40],  // dark red
+  [ 32, 120, 120],  // dark teal
+  [160, 140,  40],  // olive
+  [168,  60,  96],  // pink
+  [ 60,  80, 160],  // slate blue
 ];
 
-const W = 880;
-const H = 540;
-const SHELF_X = 52;
-const SHELF_W = W - SHELF_X * 2;
-const SHELF_T = 14;
-const BOOK_GAP = 3;
+// Slightly lighter highlight per colour (top 2px of spine)
+const BOOK_HI: [number, number, number][] = BOOK_COLORS.map(
+  ([r, g, b]) => [Math.min(255, r + 64), Math.min(255, g + 64), Math.min(255, b + 64)],
+);
 
-// Rows: shelf board y-position (books sit above)
-const SHELF_ROWS = [188, 320, 452];
+// Page-edge colour (right side of each book)
+const PAGE: [number, number, number] = [240, 228, 200];
 
 export default function BookshelfRoom() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
+    // ── Build the SNES room background BEFORE Kaplay starts ─────────────────
+    const bgCanvas = buildRoomBackground();
+
+    // ── Kaplay at SNES resolution; CSS doubles it to 880×540 ────────────────
     const k = kaplay({
-      root: container,
-      width: W,
-      height: H,
-      background: [242, 232, 210] as [number, number, number],
+      canvas,
+      width:  GW,
+      height: GH,
+      background: [237, 217, 154] as [number, number, number], // matches wall colour
       global: false,
-      crisp: false,
+      crisp: true,          // pixel-perfect rendering
     });
 
     let cancelled = false;
 
-    // ── Loading scene ──────────────────────────────────────────────
+    // ── Loading scene ────────────────────────────────────────────────────────
     k.scene("loading", () => {
-      // Wall
-      k.add([k.rect(W, H - 90), k.pos(0, 0), k.color(235, 220, 195), k.fixed()]);
-      // Floor
-      k.add([k.rect(W, 90), k.pos(0, H - 90), k.color(118, 78, 32), k.fixed()]);
-      k.add([k.rect(W, 5),  k.pos(0, H - 90), k.color(68, 42, 12),  k.fixed()]);
-
+      // Draw the background so it looks nice even while loading
+      k.add([k.sprite("bg"), k.pos(0, 0), k.fixed()]);
       k.add([
-        k.text("Loading your library…", { size: 18 }),
-        k.pos(W / 2, H / 2),
+        k.text("Loading...", { size: 8 }),
+        k.pos(GW / 2, GH / 2),
         k.anchor("center"),
-        k.color(100, 68, 28),
+        k.color(80, 50, 14),
         k.fixed(),
       ]);
     });
 
-    k.go("loading");
+    // Load background sprite then go to loading scene
+    k.loadSprite("bg", bgCanvas).onLoad(() => {
+      if (!cancelled) k.go("loading");
+    });
 
-    // ── Fetch books then build room ────────────────────────────────
+    // ── Fetch books ──────────────────────────────────────────────────────────
     getBooks()
       .then((books) => {
         if (cancelled) return;
 
         k.scene("room", () => {
-          // ── Background ──────────────────────────────────────────
-          k.add([k.rect(W, H - 90), k.pos(0, 0), k.color(235, 220, 195), k.fixed()]);
-          k.add([k.rect(W, 90), k.pos(0, H - 90), k.color(118, 78, 32),  k.fixed()]);
-          k.add([k.rect(W, 5),  k.pos(0, H - 90), k.color(68, 42, 12),   k.fixed()]);
+          // Static background
+          k.add([k.sprite("bg"), k.pos(0, 0), k.fixed()]);
 
-          // ── Window (decorative) ──────────────────────────────────
-          // Glass pane
-          k.add([k.rect(100, 125), k.pos(715, 42), k.color(168, 208, 248), k.fixed()]);
-          // Frame top/bottom/left/right
-          k.add([k.rect(108, 7), k.pos(711, 38),  k.color(98, 62, 28), k.fixed()]);
-          k.add([k.rect(108, 7), k.pos(711, 160), k.color(98, 62, 28), k.fixed()]);
-          k.add([k.rect(7, 132), k.pos(711, 38),  k.color(98, 62, 28), k.fixed()]);
-          k.add([k.rect(7, 132), k.pos(812, 38),  k.color(98, 62, 28), k.fixed()]);
-          // Window cross-bars
-          k.add([k.rect(4, 125), k.pos(763, 42), k.color(98, 62, 28), k.fixed()]);
-          k.add([k.rect(100, 4), k.pos(715, 104), k.color(98, 62, 28), k.fixed()]);
+          // ── Room title ─────────────────────────────────────────────────────
+          // Shadow layer (1px offset, dark brown) then main text
+          k.add([
+            k.text("My Library", { size: 9 }),
+            k.pos(GW / 2 + 1, 3),
+            k.anchor("top"),
+            k.color(40, 24, 6),
+            k.opacity(0.6),
+            k.fixed(),
+          ]);
+          k.add([
+            k.text("My Library", { size: 9 }),
+            k.pos(GW / 2, 2),
+            k.anchor("top"),
+            k.color(248, 224, 128),
+            k.fixed(),
+          ]);
 
-          // ── Shelf unit side supports ─────────────────────────────
-          const supportTop = SHELF_ROWS[0];
-          const supportBot = SHELF_ROWS[2] + SHELF_T;
-          k.add([k.rect(12, supportBot - supportTop), k.pos(SHELF_X - 10, supportTop), k.color(92, 58, 22), k.fixed()]);
-          k.add([k.rect(12, supportBot - supportTop), k.pos(SHELF_X + SHELF_W - 2, supportTop), k.color(92, 58, 22), k.fixed()]);
-
-          // ── Shelves & books ──────────────────────────────────────
-          let bookIndex = 0;
+          // ── Books ──────────────────────────────────────────────────────────
+          let bookIdx = 0;
 
           for (const shelfY of SHELF_ROWS) {
-            // Shelf board
-            k.add([k.rect(SHELF_W, SHELF_T), k.pos(SHELF_X, shelfY), k.color(108, 70, 26), k.fixed()]);
-            // Drop-shadow strip below board
-            k.add([k.rect(SHELF_W, 5), k.pos(SHELF_X, shelfY + SHELF_T), k.color(58, 36, 10), k.opacity(0.45), k.fixed()]);
+            let curX = SHELF_X + 4;
+            const maxX = SHELF_X + SHELF_W - 4;
 
-            let curX = SHELF_X + 8;
-            const maxX = SHELF_X + SHELF_W - 8;
+            while (bookIdx < books.length) {
+              const book = books[bookIdx];
 
-            while (bookIndex < books.length) {
-              const book = books[bookIndex];
-
-              // Deterministic pseudo-random dimensions keyed on book id
-              const bookW = 26 + ((book.id * 7)  % 14); // 26–39 px
-              const bookH = 60 + ((book.id * 11) % 30); // 60–89 px
+              // Pseudo-random but deterministic book dimensions
+              const bookW = 13 + ((book.id * 7)  % 7);  // 13–19 px
+              const bookH = 30 + ((book.id * 11) % 15); // 30–44 px
               const bookX = curX;
               const bookY = shelfY - bookH;
 
               if (bookX + bookW > maxX) break;
 
-              const [r, g, b] = BOOK_COLORS[book.id % BOOK_COLORS.length];
+              const ci = book.id % BOOK_COLORS.length;
+              const [r, g, b] = BOOK_COLORS[ci];
+              const [hr, hg, hb] = BOOK_HI[ci];
 
-              // ── Spine body ────────────────────────────────────────
-              const bookObj = k.add([
+              // ── Spine body ────────────────────────────────────────────────
+              const spine = k.add([
                 k.rect(bookW, bookH),
                 k.pos(bookX, bookY),
                 k.color(r, g, b),
@@ -130,117 +132,138 @@ export default function BookshelfRoom() {
                 "book",
               ]);
 
-              // Spine top highlight
+              // Spine top highlight (2px)
               k.add([
-                k.rect(Math.max(2, bookW - 6), 5),
-                k.pos(bookX + 3, bookY + 3),
-                k.color(Math.min(255, r + 72), Math.min(255, g + 72), Math.min(255, b + 72)),
-                k.opacity(0.45),
+                k.rect(bookW, 2),
+                k.pos(bookX, bookY),
+                k.color(hr, hg, hb),
                 k.fixed(),
               ]);
 
-              // Page-edge strip on right
+              // Bottom shadow (2px)
               k.add([
-                k.rect(4, bookH - 4),
-                k.pos(bookX + bookW - 6, bookY + 2),
-                k.color(228, 218, 198),
-                k.opacity(0.38),
+                k.rect(bookW, 2),
+                k.pos(bookX, bookY + bookH - 2),
+                k.color(
+                  Math.max(0, r - 60),
+                  Math.max(0, g - 60),
+                  Math.max(0, b - 60),
+                ),
                 k.fixed(),
               ]);
 
-              // ── Tooltip (hidden until hover) ──────────────────────
-              const TTW = 205;
-              const TTH = 82;
+              // Page edge (right side, 3px)
+              k.add([
+                k.rect(3, bookH - 4),
+                k.pos(bookX + bookW - 3, bookY + 2),
+                k.color(...PAGE),
+                k.opacity(0.55),
+                k.fixed(),
+              ]);
 
-              const ttBg = k.add([
+              // ── SNES-style dialog tooltip (hidden until hover) ────────────
+              const TTW = 110;
+              const TTH = 44;
+
+              // Outer box (dark)
+              const ttOuter = k.add([
                 k.rect(TTW, TTH),
                 k.pos(0, 0),
-                k.color(24, 14, 7),
+                k.color(16, 8, 4),
+                k.outline(2, k.rgb(216, 196, 144)),
                 k.opacity(0),
                 k.z(20),
                 k.fixed(),
               ]);
 
-              const ttText = k.add([
-                k.text("", { size: 9, width: TTW - 18 }),
+              const ttTitle = k.add([
+                k.text("", { size: 7, width: TTW - 12 }),
                 k.pos(0, 0),
-                k.color(238, 226, 208),
+                k.color(248, 224, 128),
                 k.opacity(0),
                 k.z(21),
                 k.fixed(),
               ]);
 
-              const ttHint = k.add([
-                k.text("click to open →", { size: 8 }),
+              const ttSub = k.add([
+                k.text("", { size: 6, width: TTW - 12 }),
                 k.pos(0, 0),
-                k.color(180, 158, 118),
+                k.color(196, 180, 136),
                 k.opacity(0),
                 k.z(21),
                 k.fixed(),
               ]);
 
-              bookObj.onHover(() => {
-                const ttx = Math.min(bookX, W - TTW - 10);
-                const tty = Math.max(bookY - TTH - 8, 4);
-                ttBg.pos   = k.vec2(ttx, tty);
-                ttText.pos = k.vec2(ttx + 9, tty + 8);
-                ttHint.pos = k.vec2(ttx + 9, tty + TTH - 18);
-                ttBg.opacity   = 0.92;
-                ttText.opacity = 1;
-                ttHint.opacity = 1;
+              const ttPrompt = k.add([
+                k.text("▶ Open", { size: 6 }),
+                k.pos(0, 0),
+                k.color(160, 220, 160),
+                k.opacity(0),
+                k.z(21),
+                k.fixed(),
+              ]);
 
-                const authorName = book.author
+              function showTip() {
+                const ttx = Math.min(bookX, GW - TTW - 4);
+                const tty = Math.max(bookY - TTH - 4, 2);
+                ttOuter.pos  = k.vec2(ttx, tty);
+                ttTitle.pos  = k.vec2(ttx + 5, tty + 4);
+                ttSub.pos    = k.vec2(ttx + 5, tty + 14);
+                ttPrompt.pos = k.vec2(ttx + 5, tty + TTH - 12);
+
+                ttOuter.opacity  = 0.96;
+                ttTitle.opacity  = 1;
+                ttSub.opacity    = 1;
+                ttPrompt.opacity = 1;
+
+                ttTitle.text = book.title.length > 20
+                  ? book.title.slice(0, 18) + "…"
+                  : book.title;
+
+                const author = book.author
                   ? `${book.author.firstName} ${book.author.lastName}`
-                  : "Unknown author";
-                const genres = book.genres?.slice(0, 3).join(", ") ?? "";
-                ttText.text =
-                  `${book.title.slice(0, 38)}\n${authorName}` +
-                  (genres ? `\n${genres}` : "");
-              });
+                  : "Unknown";
+                const genre = book.genres?.slice(0, 2).join("/") ?? "";
+                ttSub.text = genre ? `${author}\n${genre}` : author;
+              }
 
-              bookObj.onHoverEnd(() => {
-                ttBg.opacity   = 0;
-                ttText.opacity = 0;
-                ttHint.opacity = 0;
-              });
+              function hideTip() {
+                ttOuter.opacity  = 0;
+                ttTitle.opacity  = 0;
+                ttSub.opacity    = 0;
+                ttPrompt.opacity = 0;
+              }
 
-              bookObj.onClick(() => navigateTo(`/books/${book.id}`));
+              spine.onHover(showTip);
+              spine.onHoverEnd(hideTip);
+              spine.onClick(() => navigateTo(`/books/${book.id}`));
 
               curX += bookW + BOOK_GAP;
-              bookIndex++;
+              bookIdx++;
             }
           }
 
-          // ── Room title ───────────────────────────────────────────
-          k.add([
-            k.text("My Library", { size: 28 }),
-            k.pos(W / 2, 16),
-            k.anchor("top"),
-            k.color(78, 48, 16),
-            k.fixed(),
-          ]);
-
-          // Overflow note if books were cut off
-          if (bookIndex < books.length) {
+          // ── Overflow note ──────────────────────────────────────────────────
+          if (bookIdx < books.length) {
             k.add([
-              k.text(`(${books.length - bookIndex} more in your list)`, { size: 11 }),
-              k.pos(W / 2, H - 82),
+              k.text(`(${books.length - bookIdx} more books in list)`, { size: 6 }),
+              k.pos(GW / 2, GH - SHELF_T - 6),
               k.anchor("center"),
-              k.color(148, 108, 58),
+              k.color(192, 160, 88),
               k.fixed(),
             ]);
           }
 
-          // ── Empty state ──────────────────────────────────────────
+          // ── Empty state ────────────────────────────────────────────────────
           if (books.length === 0) {
             k.add([
-              k.text("Your shelves are empty.\nAdd some books to fill them up!", {
-                size: 16,
+              k.text("Your shelves are empty!\nAdd books to fill them.", {
+                size: 8,
                 align: "center",
               }),
-              k.pos(W / 2, H / 2 - 30),
+              k.pos(GW / 2, GH / 2 - 16),
               k.anchor("center"),
-              k.color(128, 98, 52),
+              k.color(148, 112, 48),
               k.fixed(),
             ]);
           }
@@ -251,16 +274,15 @@ export default function BookshelfRoom() {
       .catch(() => {
         if (cancelled) return;
         k.scene("error", () => {
-          k.add([k.rect(W, H - 90), k.pos(0, 0), k.color(235, 220, 195), k.fixed()]);
-          k.add([k.rect(W, 90), k.pos(0, H - 90), k.color(118, 78, 32),  k.fixed()]);
+          k.add([k.sprite("bg"), k.pos(0, 0), k.fixed()]);
           k.add([
-            k.text("Could not load books.\nCheck your connection and try again.", {
-              size: 16,
+            k.text("Could not load books.\nCheck your connection.", {
+              size: 8,
               align: "center",
             }),
-            k.pos(W / 2, H / 2),
+            k.pos(GW / 2, GH / 2),
             k.anchor("center"),
-            k.color(168, 48, 38),
+            k.color(200, 48, 38),
             k.fixed(),
           ]);
         });
@@ -274,9 +296,17 @@ export default function BookshelfRoom() {
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{ display: "flex", justifyContent: "center", width: "100%", maxWidth: W, margin: "0 auto" }}
-    />
+    <div style={{ display: "flex", justifyContent: "center", padding: "1rem" }}>
+      <canvas
+        ref={canvasRef}
+        style={{
+          // CSS doubles the 440×270 canvas to 880×540 — authentic SNES upscale
+          width: GW * 2,
+          height: GH * 2,
+          imageRendering: "pixelated",
+          display: "block",
+        }}
+      />
+    </div>
   );
 }
