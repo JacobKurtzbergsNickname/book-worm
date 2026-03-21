@@ -1,31 +1,42 @@
 import { useEffect, useMemo, useState } from "react";
-import Header from "./Header";
-import BooksPage from "./pages/BooksPage";
-import BookDetailPage from "./pages/BookDetailPage";
+import { Header } from "./components";
+import { BookDetailPage, BooksPage } from "./pages";
 
-function App() {
+// ---------------------------------------------------------------------------
+// Routing
+// ---------------------------------------------------------------------------
+
+type Route =
+  | { readonly type: "list" }
+  | { readonly type: "detail"; readonly id: string };
+
+function matchRoute(path: string): Route {
+  const detailMatch = path.match(/^\/books\/(\d+)$/);
+  if (detailMatch) return { type: "detail", id: detailMatch[1]! };
+  return { type: "list" };
+}
+
+// ---------------------------------------------------------------------------
+// App
+// ---------------------------------------------------------------------------
+
+export default function App() {
   const [path, setPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    const handler = () => setPath(window.location.pathname);
-    window.addEventListener("popstate", handler);
-    return () => window.removeEventListener("popstate", handler);
+    const handlePopState = () => setPath(window.location.pathname);
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
   }, []);
 
-  const match = useMemo(() => {
-    const detailMatch = path.match(/^\/books\/(\d+)$/);
-    if (detailMatch) {
-      return { type: "detail" as const, id: detailMatch[1] };
-    }
-    return { type: "list" as const };
-  }, [path]);
+  const route = useMemo(() => matchRoute(path), [path]);
 
   return (
     <>
       <Header />
-      {match.type === "detail" ? <BookDetailPage id={match.id} /> : <BooksPage />}
+      {route.type === "detail"
+        ? <BookDetailPage id={route.id} />
+        : <BooksPage />}
     </>
   );
 }
-
-export default App;

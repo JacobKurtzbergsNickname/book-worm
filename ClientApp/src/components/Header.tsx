@@ -1,6 +1,6 @@
-import { navigateTo } from "./routing";
+import { navigateTo } from "../routing";
 
-function Header() {
+export default function Header() {
   return (
     <header id="header" className="border-b border-gray-700">
       <div className="mx-auto max-w-5xl p-4 flex items-center justify-between">
@@ -19,5 +19,3 @@ function Header() {
     </header>
   );
 }
-
-export default Header;
