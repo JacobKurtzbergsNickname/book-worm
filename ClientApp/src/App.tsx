@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import BooksPage from "./pages/BooksPage";
 import BookDetailPage from "./pages/BookDetailPage";
-import BookshelfRoom from "./components/BookshelfRoom";
 import { Header } from "./components";
+
+const BookshelfRoom = lazy(() => import("./components/BookshelfRoom"));
 
 // ---------------------------------------------------------------------------
 // Routing
@@ -41,7 +42,11 @@ export default function App() {
       {(() => {
         switch (route.type) {
           case "bookshelf":
-            return <BookshelfRoom />;
+            return (
+              <Suspense fallback={<div>Loading bookshelf...</div>}>
+                <BookshelfRoom />
+              </Suspense>
+            );
           case "detail":
             return <BookDetailPage id={route.id} />;
           case "list":
