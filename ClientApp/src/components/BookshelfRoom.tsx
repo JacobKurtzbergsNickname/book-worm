@@ -296,13 +296,22 @@ export default function BookshelfRoom() {
   }, []);
 
   return (
-    <div style={{ display: "flex", justifyContent: "center", padding: "1rem" }}>
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "center",
+        padding: "1rem",
+        width: "100%",
+      }}
+    >
       <canvas
         ref={canvasRef}
         style={{
-          // CSS doubles the 440×270 canvas to 880×540 — authentic SNES upscale
-          width: GW * 2,
-          height: GH * 2,
+          // CSS doubles the 440×270 canvas to 880×540 when space allows; scales down on smaller screens
+          width: "100%",
+          maxWidth: GW * 2,
+          aspectRatio: `${GW} / ${GH}`,
+          height: "auto",
           imageRendering: "pixelated",
           display: "block",
         }}
