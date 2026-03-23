@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import BooksPage from "./pages/BooksPage";
+import BookDetailPage from "./pages/BookDetailPage";
 import { Header } from "./components";
-import { BookDetailPage, BooksPage } from "./pages";
+
+const BookshelfRoom = lazy(() => import("./components/BookshelfRoom"));
 
 // ---------------------------------------------------------------------------
 // Routing
@@ -8,9 +11,11 @@ import { BookDetailPage, BooksPage } from "./pages";
 
 type Route =
   | { readonly type: "list" }
-  | { readonly type: "detail"; readonly id: string };
+  | { readonly type: "detail"; readonly id: string }
+  | { readonly type: "bookshelf" };
 
 function matchRoute(path: string): Route {
+  if (path === "/bookshelf") return { type: "bookshelf" };
   const detailMatch = path.match(/^\/books\/(\d+)$/);
   if (detailMatch) return { type: "detail", id: detailMatch[1]! };
   return { type: "list" };
@@ -34,9 +39,21 @@ export default function App() {
   return (
     <>
       <Header />
-      {route.type === "detail"
-        ? <BookDetailPage id={route.id} />
-        : <BooksPage />}
+      {(() => {
+        switch (route.type) {
+          case "bookshelf":
+            return (
+              <Suspense fallback={<div>Loading bookshelf...</div>}>
+                <BookshelfRoom />
+              </Suspense>
+            );
+          case "detail":
+            return <BookDetailPage id={route.id} />;
+          case "list":
+          default:
+            return <BooksPage />;
+        }
+      })()}
     </>
   );
 }
