@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useSyncExternalStore } from "react";
 import BooksPage from "./pages/BooksPage";
 import BookDetailPage from "./pages/BookDetailPage";
 import { Header } from "./components";
@@ -26,13 +26,13 @@ function matchRoute(path: string): Route {
 // ---------------------------------------------------------------------------
 
 export default function App() {
-  const [path, setPath] = useState(window.location.pathname);
-
-  useEffect(() => {
-    const handlePopState = () => setPath(window.location.pathname);
-    window.addEventListener("popstate", handlePopState);
-    return () => window.removeEventListener("popstate", handlePopState);
-  }, []);
+  const path = useSyncExternalStore(
+    (callback) => {
+      window.addEventListener("popstate", callback);
+      return () => window.removeEventListener("popstate", callback);
+    },
+    () => window.location.pathname,
+  );
 
   const route = useMemo(() => matchRoute(path), [path]);
 
