@@ -75,7 +75,8 @@ export default function BookshelfRoom() {
 
     // ── Fetch books ──────────────────────────────────────────────────────────
     getBooks()
-      .then((books) => {
+      .match(
+        (books) => {
         if (cancelled) return;
 
         k.scene("room", () => {
@@ -270,8 +271,8 @@ export default function BookshelfRoom() {
         });
 
         k.go("room");
-      })
-      .catch(() => {
+      },
+        () => {
         if (cancelled) return;
         k.scene("error", () => {
           k.add([k.sprite("bg"), k.pos(0, 0), k.fixed()]);
