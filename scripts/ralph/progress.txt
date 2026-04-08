@@ -1,0 +1,15 @@
+# Ralph Progress Log
+Started: 2026-03-28
+---
+
+## Codebase Patterns
+(This section is updated by Ralph as patterns are discovered. Read before starting any story.)
+
+- Elm-style reducers in BooksPage and BookDetailPage — add Msg variants for new state changes
+- neverthrow ResultAsync for all API calls — use .match(), not try/catch
+- BookForm uses a Field sub-component — compose it for new inputs, don't add raw <input> elements
+- All book fields except title are optional — no surprises from NOT NULL constraints
+- EF Core migrations: dotnet ef migrations add <Name> from the project root
+- Mapster auto-maps matching property names — only add explicit config in MapsterConfig.cs when property names differ or types need conversion
+
+---

@@ -1,0 +1,199 @@
+{
+  "project": "BookWorm",
+  "branchName": "ralph/bookworm-phase-1",
+  "description": "Phase 1 — Core value features: data richness, UX power, and first whimsy hook",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "OpenLibrary ISBN auto-fill in Add Book form",
+      "description": "As a user, I want to type an ISBN and have the book's title, author, publisher, and description auto-populated from OpenLibrary, so I don't have to type everything manually.",
+      "acceptanceCriteria": [
+        "Add an 'Lookup' button next to the ISBN field in the Add Book form",
+        "Clicking the button calls GET /api/books/openlibrary/{isbn} with the current ISBN value",
+        "On success, title, author first/last name, and description fields are populated from the response",
+        "Button shows a loading state while the request is in flight",
+        "If the ISBN is not found, show a non-blocking inline error message near the ISBN field",
+        "If the ISBN field is empty, the button is disabled",
+        "All existing form validation and submission behaviour is unchanged",
+        "Frontend typechecks pass: cd ClientApp && npm run build",
+        "Backend builds: dotnet build"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "The backend endpoint GET /api/books/openlibrary/{isbn} already exists in BooksController.cs and OpenLibraryService.cs. The OpenLibraryBook model returns Title, Subtitle, Authors (as key refs), PublishDate, NumberOfPages, Publishers. Authors come back as key refs only (e.g. '/authors/OL1A') — use the first publisher from Publishers[] and the PublishDate for date. For author name, the OpenLibrary ISBN endpoint does not return full names directly; populate what's available and leave name fields blank if not resolvable. Wire the existing booksApi.ts or add a new lookup function."
+    },
+    {
+      "id": "US-002",
+      "title": "Reading Status field on books",
+      "description": "As a reader, I want to mark each book as 'Want to Read', 'Reading', or 'Read', so I can track my reading progress.",
+      "acceptanceCriteria": [
+        "Add a ReadingStatus enum to the Book entity: WantToRead, Reading, Read",
+        "Add readingStatus column to the database via a new EF Core migration",
+        "Default value is WantToRead",
+        "Expose readingStatus in BookReadDto and BookCreateDto",
+        "Add a status dropdown/select to both the Add Book form and the Edit Book form",
+        "Display the reading status badge on the book detail page and in the book list",
+        "Status badge uses distinct colours: WantToRead = slate, Reading = amber, Read = green",
+        "Frontend typechecks pass: cd ClientApp && npm run build",
+        "Backend builds: dotnet build"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Add the enum in Models/Entities/Book.cs. Create a migration with: dotnet ef migrations add AddReadingStatus. Update BookReadDto.cs and BookCreateDto.cs. Update Mapster mappings if needed (MapsterConfig.cs). Update BooksPage reducer and BookDetailPage reducer to handle the new field. The BookForm component should get a new select field — see existing Field subcomponent pattern in BookForm.tsx."
+    },
+    {
+      "id": "US-003",
+      "title": "Translator and Publisher fields",
+      "description": "As a reader of translated literature, I want to record the translator and publisher of a book, so I can credit translators as co-authors and track small-press publishers.",
+      "acceptanceCriteria": [
+        "Add translator (string, max 200, optional) and publisher (string, max 200, optional) columns to the Book entity and database via a new EF Core migration",
+        "Expose translator and publisher in BookReadDto and BookCreateDto",
+        "Add Translator and Publisher input fields to both the Add Book form and the Edit Book form",
+        "Display translator (if present) on the book detail page, labelled 'Translated by'",
+        "Display publisher (if present) on the book detail page",
+        "Frontend typechecks pass: cd ClientApp && npm run build",
+        "Backend builds: dotnet build"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Similar pattern to any other Book scalar field addition. Migration: dotnet ef migrations add AddTranslatorAndPublisher. Update BookForm.tsx to add two new text fields using the existing Field component pattern. Update the detail page display section. Update the TypeScript Book type in models/book.ts."
+    },
+    {
+      "id": "US-004",
+      "title": "Search and filter in the book list",
+      "description": "As a user with a growing collection, I want to search by title or author and filter by reading status, so I can quickly find the book I'm looking for.",
+      "acceptanceCriteria": [
+        "Add a text search input above the book list on BooksPage",
+        "Search filters the displayed list client-side by title and author name (case-insensitive, partial match)",
+        "Add a reading status filter dropdown (All / Want to Read / Reading / Read) next to the search input",
+        "Search and filter work together (both active simultaneously)",
+        "When no results match, show a friendly empty state message",
+        "Search input is debounced (300ms) to avoid excessive re-renders",
+        "Filter state is local to the component — no URL persistence needed for now",
+        "Frontend typechecks pass: cd ClientApp && npm run build"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "This is entirely a frontend change. The full book list is already loaded into state in BooksPage.tsx — just add a derived filtered list using useMemo. Follow the existing Elm-style reducer pattern: add SearchQueryChanged and StatusFilterChanged Msg variants. No backend changes needed. Reading status filter depends on US-002 being completed first."
+    },
+    {
+      "id": "US-005",
+      "title": "'Currently Reading' bookmark in the SNES bookshelf",
+      "description": "As a user, I want to see a small bookmark sticking out of the spine of the book I'm currently reading in the bookshelf room, so the shelf feels alive and personal.",
+      "acceptanceCriteria": [
+        "Books with readingStatus = 'Reading' display a small bookmark tab sticking up above their spine in the SNES bookshelf room",
+        "The bookmark is a bright red/crimson colour, 3px wide, 8px tall, positioned at the top of the spine",
+        "If multiple books have status Reading, all of them show a bookmark",
+        "The bookmark does not interfere with hover tooltips or click navigation",
+        "The bookmark is rendered using Kaplay primitives (rect or similar), consistent with the existing pixel-art aesthetic",
+        "Frontend typechecks pass: cd ClientApp && npm run build"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "All changes are in BookshelfRoom.tsx. After the spine rect is drawn for each book, check if book.readingStatus === 'Reading' and draw an additional rect above the spine top. The Book type from the API will now include readingStatus after US-002. Use the existing Kaplay add() / rect() pattern already in the file. Keep it pixel-perfect: 3px wide, 8-10px tall, offset slightly from centre of the spine."
+    },
+    {
+      "id": "US-006",
+      "title": "Per-book private notes",
+      "description": "As a reader, I want to write private freeform notes on each book, so I can record personal reactions, memories, and observations that are just for me.",
+      "phase": 2,
+      "status": "ready",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "Add a notes column (text, optional) to the Book entity and database via a new EF Core migration",
+        "Expose notes in BookReadDto and BookCreateDto",
+        "Add a multiline textarea for notes in the Edit Book form on BookDetailPage",
+        "Display notes (if present) on the book detail page under a 'My Notes' heading",
+        "Notes are not shown in the book list — detail page only",
+        "Frontend typechecks pass: cd ClientApp && npm run build",
+        "Backend builds: dotnet build"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "Simple scalar text field addition — same pattern as description. Migration: dotnet ef migrations add AddBookNotes. Add a <textarea> in BookDetailPage edit form using the existing Field component pattern. Render notes in the read view beneath description. No markdown rendering needed at this stage — plain text is fine."
+    },
+    {
+      "id": "US-007",
+      "title": "Day/night cycle in the SNES bookshelf room",
+      "description": "As a user, I want the bookshelf room to reflect the time of day — morning light, golden afternoon, moonlit night — so the shelf feels alive and grounded in my real day.",
+      "phase": 2,
+      "status": "ready",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "The bookshelf room reads the current local time when the scene loads",
+        "06:00–11:59 → morning: warm light tint on the room, pale blue sky through the window",
+        "12:00–16:59 → afternoon: neutral room lighting, bright white-yellow sky",
+        "17:00–20:59 → evening/golden hour: amber/orange tint on walls and floor, warm sky",
+        "21:00–05:59 → night: dark navy room overlay, moon visible through the window",
+        "The tint is applied as a semi-transparent colour overlay on the background sprite, not by recolouring individual elements",
+        "No real-time tick required — time is sampled once on scene load",
+        "Frontend typechecks pass: cd ClientApp && npm run build"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "All changes in BookshelfRoom.tsx and/or snesRoom.ts. After buildRoomBackground() renders the base scene, use Kaplay's rect() with a low-opacity colour fill over the full canvas (440×270) to apply the tint. Read time via new Date().getHours(). The window area in snesRoom.ts is already drawn — optionally also change the window colour to match the sky palette. Keep the overlay opacity subtle (0.10–0.20 alpha) so the room detail stays visible."
+    },
+    {
+      "id": "US-008",
+      "title": "Custom named shelves (collections)",
+      "description": "As a reader, I want to organise my books into named collections beyond the default shelf — such as 'Abandoned', 'To Reread', 'Books That Broke Me' — so I can curate my library my way.",
+      "phase": 2,
+      "status": "needs-refinement",
+      "dependsOn": [],
+      "acceptanceCriteria": [
+        "REFINEMENT NEEDED: Decide whether collections are a separate entity (many-to-many with books) or a simple tag/label on each book",
+        "REFINEMENT NEEDED: Decide how collections appear in the SNES bookshelf — as separate tab/shelf-switch, or as a filter on the existing room",
+        "REFINEMENT NEEDED: Decide the UX for adding/removing a book from a collection (from list, from detail page, or both)",
+        "A book can belong to multiple collections simultaneously",
+        "Collections can be created, renamed, and deleted by the user",
+        "The default view (no collection selected) shows all books as today"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "This is the most architecturally significant Phase 2 feature. Before implementing, a product decision is needed: (A) A Collection entity with a many-to-many join to books — clean but heavier; or (B) A simple comma-separated 'shelf' tag field on Book, similar to how genres currently work — lower effort but less flexible. The SNES bookshelf integration is also open: does navigating collections mean switching scenes in Kaplay, or just re-filtering which books are rendered? Recommend starting with option B (tag-based) and the filter approach — avoids premature DB complexity. Do not implement until the refinement questions are resolved."
+    },
+    {
+      "id": "US-009",
+      "title": "Cover art from OpenLibrary and dominant-colour spine tinting",
+      "description": "As a user, I want my books to display their cover art and have their SNES spine colour automatically derived from the cover, so my shelf looks unmistakably mine.",
+      "phase": 2,
+      "status": "ready",
+      "dependsOn": ["US-001"],
+      "acceptanceCriteria": [
+        "When an ISBN is present, fetch the cover image URL from OpenLibrary Covers API: https://covers.openlibrary.org/b/isbn/{isbn}-M.jpg",
+        "Store coverUrl (string, optional) on the Book entity via a new EF Core migration",
+        "Display the cover image on the book detail page if coverUrl is present",
+        "In the SNES bookshelf room, if a book has a coverUrl, extract the dominant colour from the image and use it as the spine colour instead of the random palette colour",
+        "Dominant colour extraction runs client-side using a hidden <canvas> element — no external library needed",
+        "If cover fetch fails or no ISBN, fall back to the existing random palette colour — no errors shown to the user",
+        "Frontend typechecks pass: cd ClientApp && npm run build",
+        "Backend builds: dotnet build"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "OpenLibrary cover URL format: https://covers.openlibrary.org/b/isbn/{isbn}-M.jpg (M = medium). No API key needed. To extract dominant colour client-side: draw the image onto a hidden <canvas>, call getImageData(), average the RGB values of non-white/non-black pixels. Store the result as a hex string or use it transiently in the Kaplay scene. The coverUrl can be auto-populated when the ISBN lookup (US-001) runs, or added manually. Backend: add CoverUrl string field to Book entity and DTOs. The BookshelfRoom.tsx spine-colour logic currently uses a deterministic palette array — replace the colour lookup for books that have a coverUrl."
+    },
+    {
+      "id": "US-010",
+      "title": "Bulk import from Goodreads CSV export",
+      "description": "As a user migrating from Goodreads, I want to upload my Goodreads export CSV and have my existing library imported into BookWorm, so I don't have to re-enter hundreds of books manually.",
+      "phase": 2,
+      "status": "needs-refinement",
+      "dependsOn": ["US-002", "US-003"],
+      "acceptanceCriteria": [
+        "REFINEMENT NEEDED: Decide where the import UI lives — dedicated page, modal on BooksPage, or settings area",
+        "REFINEMENT NEEDED: Decide handling of duplicates — skip silently, overwrite, or prompt the user",
+        "REFINEMENT NEEDED: Confirm which Goodreads CSV columns map to which BookWorm fields (Title, Author, ISBN, Bookshelves → readingStatus, Date Read → finishedAt, My Rating → rating if US-016 is done)",
+        "A file input accepts a .csv file",
+        "Parsed rows are POSTed to /api/books in sequence or batch",
+        "A progress indicator shows import status (X of N books imported)",
+        "Rows that fail validation are reported to the user with row number and reason — import continues for valid rows",
+        "Frontend typechecks pass: cd ClientApp && npm run build",
+        "Backend builds: dotnet build"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "Goodreads CSV columns of interest: Title, Author, ISBN, ISBN13, My Rating, Number of Pages, Year Published, Date Read, Date Added, Bookshelves, Exclusive Shelf (read/currently-reading/to-read). The Exclusive Shelf column maps cleanly to ReadingStatus. Consider implementing the CSV parse entirely on the frontend (FileReader API + manual CSV split) to avoid a new backend endpoint. Papa Parse is a popular CSV library but check if adding a dependency is acceptable — alternatively a simple manual split works for well-formed CSVs. Do not implement until refinement questions are resolved and US-002 and US-003 are complete."
+    }
+  ]
+}
