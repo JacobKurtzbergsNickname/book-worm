@@ -1,4 +1,3 @@
-import axios from "axios";
 import { ResultAsync } from "neverthrow";
 import type { Book, BookCreatePayload } from "../models";
 
@@ -25,12 +24,20 @@ export function formatAppError(err: AppError): string {
 // Internal
 // ---------------------------------------------------------------------------
 
-const booksApi = axios.create({ baseURL: "/api/books" });
+const BASE_URL = "/api/books";
+
+async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(`${BASE_URL}${path}`, init);
+  if (res.status === 404) throw Object.assign(new Error("Not found"), { status: 404 });
+  if (!res.ok) throw Object.assign(new Error("Server error"), { status: res.status });
+  return res.json() as Promise<T>;
+}
 
 function toAppError(err: unknown): AppError {
-  if (axios.isAxiosError(err)) {
-    if (err.response?.status === 404) return { kind: "NotFound" };
-    if (err.response)                 return { kind: "Server", status: err.response.status };
+  if (err instanceof Error) {
+    const status = (err as Error & { status?: number }).status;
+    if (status === 404) return { kind: "NotFound" };
+    if (status !== undefined) return { kind: "Server", status };
     return { kind: "Network", message: err.message };
   }
   return { kind: "Unknown", message: String(err) };
@@ -45,21 +52,29 @@ function fromApi<T>(promise: Promise<T>): ResultAsync<T, AppError> {
 // ---------------------------------------------------------------------------
 
 export function getBooks(): ResultAsync<readonly Book[], AppError> {
-  return fromApi(booksApi.get<Book[]>("/").then((r) => r.data));
+  return fromApi(apiFetch<Book[]>("/"));
 }
 
 export function getBookById(id: number): ResultAsync<Book, AppError> {
-  return fromApi(booksApi.get<Book>(`/${id}`).then((r) => r.data));
+  return fromApi(apiFetch<Book>(`/${id}`));
 }
 
 export function createBook(payload: BookCreatePayload): ResultAsync<Book, AppError> {
-  return fromApi(booksApi.post<Book>("/", payload).then((r) => r.data));
+  return fromApi(apiFetch<Book>("/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }));
 }
 
 export function updateBook(id: number, payload: BookCreatePayload): ResultAsync<Book, AppError> {
-  return fromApi(booksApi.put<Book>(`/${id}`, payload).then((r) => r.data));
+  return fromApi(apiFetch<Book>(`/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }));
 }
 
 export function deleteBook(id: number): ResultAsync<Book, AppError> {
-  return fromApi(booksApi.delete<Book>(`/${id}`).then((r) => r.data));
+  return fromApi(apiFetch<Book>(`/${id}`, { method: "DELETE" }));
 }
