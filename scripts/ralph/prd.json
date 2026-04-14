@@ -19,7 +19,7 @@
         "Backend builds: dotnet build"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "The backend endpoint GET /api/books/openlibrary/{isbn} already exists in BooksController.cs and OpenLibraryService.cs. The OpenLibraryBook model returns Title, Subtitle, Authors (as key refs), PublishDate, NumberOfPages, Publishers. Authors come back as key refs only (e.g. '/authors/OL1A') — use the first publisher from Publishers[] and the PublishDate for date. For author name, the OpenLibrary ISBN endpoint does not return full names directly; populate what's available and leave name fields blank if not resolvable. Wire the existing booksApi.ts or add a new lookup function."
     },
     {

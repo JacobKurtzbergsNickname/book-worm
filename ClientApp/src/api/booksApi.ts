@@ -78,3 +78,19 @@ export function updateBook(id: number, payload: BookCreatePayload): ResultAsync<
 export function deleteBook(id: number): ResultAsync<Book, AppError> {
   return fromApi(apiFetch<Book>(`/${id}`, { method: "DELETE" }));
 }
+
+// ---------------------------------------------------------------------------
+// OpenLibrary
+// ---------------------------------------------------------------------------
+
+export type OpenLibraryBook = {
+  readonly title?: string | null;
+  readonly subtitle?: string | null;
+  readonly publishers?: readonly string[] | null;
+  readonly publishDate?: string | null;
+  readonly numberOfPages?: number | null;
+};
+
+export function lookupBookByIsbn(isbn: string): ResultAsync<OpenLibraryBook, AppError> {
+  return fromApi(apiFetch<OpenLibraryBook>(`/openlibrary/${encodeURIComponent(isbn)}`));
+}

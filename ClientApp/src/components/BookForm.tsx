@@ -1,6 +1,7 @@
 import { type FormEvent, useReducer } from "react";
 import { bookFormSchema, type Book, type BookFormRaw, type BookFormValues } from "../models";
 import { bookToFormRaw, emptyFormRaw } from "../logic";
+import { lookupBookByIsbn, formatAppError } from "../api/booksApi";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -8,17 +9,27 @@ import { bookToFormRaw, emptyFormRaw } from "../logic";
 
 type FieldErrors = Partial<Record<keyof BookFormRaw, string>>;
 
+type IsbnLookupState =
+  | { readonly status: "idle" }
+  | { readonly status: "loading" }
+  | { readonly status: "error"; readonly message: string };
+
 type Model = {
   readonly values: BookFormRaw;
   readonly errors: FieldErrors;
   readonly status: "idle" | "saving";
+  readonly isbnLookup: IsbnLookupState;
 };
 
 type Msg =
   | { readonly type: "FieldChanged"; readonly field: keyof BookFormRaw; readonly value: string }
   | { readonly type: "ValidationFailed"; readonly errors: FieldErrors }
   | { readonly type: "SaveStarted" }
-  | { readonly type: "SaveFinished" };
+  | { readonly type: "SaveFinished" }
+  | { readonly type: "IsbnLookupStarted" }
+  | { readonly type: "IsbnLookupSucceeded"; readonly title: string; readonly description: string }
+  | { readonly type: "IsbnLookupNotFound" }
+  | { readonly type: "IsbnLookupFailed"; readonly message: string };
 
 // ---------------------------------------------------------------------------
 // Reducer
@@ -38,6 +49,22 @@ function update(model: Model, msg: Msg): Model {
       return { ...model, errors: {}, status: "saving" };
     case "SaveFinished":
       return { ...model, status: "idle" };
+    case "IsbnLookupStarted":
+      return { ...model, isbnLookup: { status: "loading" } };
+    case "IsbnLookupSucceeded":
+      return {
+        ...model,
+        isbnLookup: { status: "idle" },
+        values: {
+          ...model.values,
+          title: msg.title,
+          description: msg.description,
+        },
+      };
+    case "IsbnLookupNotFound":
+      return { ...model, isbnLookup: { status: "error", message: "No book found for this ISBN." } };
+    case "IsbnLookupFailed":
+      return { ...model, isbnLookup: { status: "error", message: msg.message } };
   }
 }
 
@@ -46,6 +73,7 @@ function initialModel(book: Book | undefined): Model {
     values: book ? bookToFormRaw(book) : emptyFormRaw(),
     errors: {},
     status: "idle",
+    isbnLookup: { status: "idle" },
   };
 }
 
@@ -98,8 +126,9 @@ type BookFormProps = {
 export default function BookForm({ initialBook, onSubmit, submitText }: BookFormProps) {
   const [model, dispatch] = useReducer(update, initialBook, initialModel);
 
-  const { values, errors, status } = model;
+  const { values, errors, status, isbnLookup } = model;
   const isSaving = status === "saving";
+  const isLookingUp = isbnLookup.status === "loading";
 
   function field(name: keyof BookFormRaw) {
     return {
@@ -107,6 +136,26 @@ export default function BookForm({ initialBook, onSubmit, submitText }: BookForm
       onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
         dispatch({ type: "FieldChanged", field: name, value: e.target.value }),
     };
+  }
+
+  async function handleIsbnLookup() {
+    dispatch({ type: "IsbnLookupStarted" });
+    await lookupBookByIsbn(values.isbn).match(
+      (book) => {
+        dispatch({
+          type: "IsbnLookupSucceeded",
+          title: book.title ?? "",
+          description: book.subtitle ?? "",
+        });
+      },
+      (err) => {
+        if (err.kind === "NotFound") {
+          dispatch({ type: "IsbnLookupNotFound" });
+        } else {
+          dispatch({ type: "IsbnLookupFailed", message: formatAppError(err) });
+        }
+      },
+    );
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -131,7 +180,21 @@ export default function BookForm({ initialBook, onSubmit, submitText }: BookForm
       </Field>
 
       <Field label="ISBN" error={errors.isbn}>
-        <input aria-label="ISBN" className="border rounded p-2" {...field("isbn")} />
+        <div className="flex gap-2">
+          <input aria-label="ISBN" className="border rounded p-2 flex-1" {...field("isbn")} />
+          <button
+            type="button"
+            aria-label="Lookup book by ISBN"
+            className="border rounded px-3 py-2 text-sm whitespace-nowrap"
+            onClick={handleIsbnLookup}
+            disabled={!values.isbn || isLookingUp}
+          >
+            {isLookingUp ? "Looking up…" : "Lookup"}
+          </button>
+        </div>
+        {isbnLookup.status === "error" && (
+          <p className="text-amber-500 text-sm" role="status">{isbnLookup.message}</p>
+        )}
       </Field>
 
       <Field label="Price" error={errors.price}>

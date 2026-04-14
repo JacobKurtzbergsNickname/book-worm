@@ -13,3 +13,21 @@ Started: 2026-03-28
 - Mapster auto-maps matching property names — only add explicit config in MapsterConfig.cs when property names differ or types need conversion
 
 ---
+
+## [US-001] OpenLibrary ISBN auto-fill in Add Book form — 2026-04-14
+
+### What was done
+- `ClientApp/src/api/booksApi.ts`: Added `OpenLibraryBook` type (title, subtitle, publishers, publishDate, numberOfPages) and `lookupBookByIsbn(isbn)` function that calls the existing `GET /api/books/openlibrary/{isbn}` backend endpoint via `fromApi`/`ResultAsync`.
+- `ClientApp/src/components/BookForm.tsx`: Extended `Model` with an `isbnLookup` discriminated-union state (`idle | loading | error`). Added four new `Msg` variants (`IsbnLookupStarted`, `IsbnLookupSucceeded`, `IsbnLookupNotFound`, `IsbnLookupFailed`) and their reducer cases. Added `handleIsbnLookup` async handler that dispatches these messages using `.match()`. Wrapped the ISBN `<input>` in a flex row alongside a "Lookup" button (`type="button"`, disabled when ISBN is empty or lookup is in-flight, shows "Looking up…" during load). Added an inline amber error paragraph below the ISBN field for not-found / network errors.
+- On success: `title` and `description` fields are populated from `book.title` and `book.subtitle`. Author name fields are left blank (OpenLibrary ISBN endpoint returns only author key refs like `/authors/OL1A`, full names are not resolvable without a second request).
+
+### Learnings & gotchas
+- `dotnet` CLI is not available in this environment; backend build cannot be verified locally. The backend endpoint and model were already in place and unchanged.
+- `node_modules` was absent on first attempt — run `cd ClientApp && npm install` before `npm run build` in a fresh environment.
+- The `Field` sub-component accepts `React.ReactNode` as children, so wrapping the input + button in a `<div className="flex gap-2">` inside `Field` works cleanly without touching the sub-component itself.
+
+### Quality checks
+- dotnet build: N/A (dotnet not available in environment; backend files unchanged)
+- npm run build: PASS
+
+---
